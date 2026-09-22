@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ folder.name }} — Test Report R&D{% endblock %}
+{% block page_title %}📁 {{ folder.name }}{% endblock %}
+
+{% block top_actions %}
+<span class="sample-count" style="color:rgba(255,255,255,0.7);">{{ samples|length }} sample{{ 's' if samples|length != 1 else '' }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="header-with-back" style="margin-bottom: 16px; display:flex; align-items:center; justify-content:space-between;">
+    <a href="{{ url_for('folders_list') }}" class="btn-back" id="btn-back">&larr; Back to all folders</a>
+    <form method="POST" action="{{ url_for('folder_delete', folder_id=folder.id) }}" class="inline-form"
+          onsubmit="return confirm('Delete this folder? Samples will be unassigned, not deleted.')">
+        <button type="submit" class="btn btn-danger btn-small" id="btn-delete-folder">Delete folder</button>
+    </form>
+</div>
+
+{% if samples %}
+<form method="POST" action="{{ url_for('combined_report') }}" id="combined-report-form">
+<div class="table-card">
+    <table class="data-table" id="folder-samples-table">
+        <thead>
+            <tr>
+                <th class="cell-checkbox"><input type="checkbox" id="select-all" onclick="toggleAll(this)" title="Select all"></th>
+                <th>Sample ID</th>
+                <th>Client Report No.</th>
+                <th>Sample name</th>
+                <th>Received from</th>
+                <th>Date received</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in samples %}
+            <tr class="table-row clickable" onclick="window.location='{{ url_for('sample_detail', sample_id=sample.sample_id) }}'">
+                <td class="cell-checkbox" onclick="event.stopPropagation()">
+                    <input type="checkbox" name="sample_ids" value="{{ sample.sample_id }}" class="sample-checkbox">
+                </td>
+                <td class="cell-id">
+                    <a href="{{ url_for('sample_detail', sample_id=sample.sample_id) }}" class="sample-link" id="link-{{ sample.sample_id }}">
+                        {{ sample.sample_id }}
+                    </a>
+                </td>
+                <td>
+                    {% if sample.client_report_no %}
+                    <span class="client-report-no">{{ sample.client_report_no }}</span>
+                    {% else %}
+                    <span style="color: var(--text-muted);">—</span>
+                    {% endif %}
+                </td>
+                <td>{{ sample.name }}</td>
+                <td>{{ sample.received_from }}</td>
+                <td>{{ sample.date_received }}</td>
+                <td>
+                    <span class="status-badge status-{{ 'testing' if sample.status == 'Under Testing' else 'sent' }}">
+                        {{ sample.status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="combined-report-actions" id="combined-actions">
+    <button type="submit" class="btn btn-primary" id="btn-combined-report">📄 Generate combined report</button>
+    <span class="combined-hint">Select 2 or more samples above</span>
+</div>
+</form>
+{% else %}
+<div class="empty-state" id="empty-state">
+    <h2>No samples in this folder</h2>
+    <p>Assign samples to this folder from the registration form or the sample detail page.</p>
+</div>
+{% endif %}
+
+<script>
+    function toggleAll(source) {
+        var checkboxes = document.querySelectorAll('.sample-checkbox');
+        checkboxes.forEach(function(cb) { cb.checked = source.checked; });
+    }
+</script>
+{% endblock %}

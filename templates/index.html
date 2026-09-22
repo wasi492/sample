@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}All samples — Sample Tracker{% endblock %}
+{% block page_title %}All samples{% endblock %}
+
+{% block top_actions %}
+<a href="{{ url_for('register') }}" class="top-strip-btn" id="btn-register-new">➕ Register new</a>
+{% endblock %}
+
+{% block content %}
+{% if samples %}
+<div class="page-actions">
+    <span class="sample-count" id="sample-count">{{ samples|length }} sample{{ 's' if samples|length != 1 else '' }}</span>
+</div>
+
+<form method="POST" action="{{ url_for('combined_report') }}" id="combined-report-form">
+<div class="table-card">
+    <table class="data-table" id="samples-table">
+        <thead>
+            <tr>
+                <th class="cell-checkbox"><input type="checkbox" id="select-all" onclick="toggleAll(this)" title="Select all"></th>
+                <th>Sample ID</th>
+                <th>Sample name</th>
+                <th>Received from</th>
+                <th>Date received</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in samples %}
+            <tr class="table-row clickable" onclick="window.location='{{ url_for('sample_detail', sample_id=sample.sample_id) }}'">
+                <td class="cell-checkbox" onclick="event.stopPropagation()">
+                    <input type="checkbox" name="sample_ids" value="{{ sample.sample_id }}" class="sample-checkbox">
+                </td>
+                <td class="cell-id">
+                    <a href="{{ url_for('sample_detail', sample_id=sample.sample_id) }}" class="sample-link" id="link-{{ sample.sample_id }}">
+                        {{ sample.sample_id }}
+                    </a>
+                </td>
+                <td>{{ sample.name }}</td>
+                <td>{{ sample.received_from }}</td>
+                <td>{{ sample.date_received }}</td>
+                <td>
+                    <span class="status-badge status-{{ 'testing' if sample.status == 'Under Testing' else 'sent' }}">
+                        {{ sample.status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="combined-report-actions" id="combined-actions">
+    <button type="submit" class="btn btn-primary" id="btn-combined-report">📄 Generate combined report</button>
+    <span class="combined-hint">Select 2 or more samples above</span>
+</div>
+</form>
+{% else %}
+<div class="empty-state" id="empty-state">
+    <h2>No samples yet</h2>
+    <p>Register your first sample to get started.</p>
+    <a href="{{ url_for('register') }}" class="btn btn-primary">Register sample</a>
+</div>
+{% endif %}
+
+<script>
+    function toggleAll(source) {
+        var checkboxes = document.querySelectorAll('.sample-checkbox');
+        checkboxes.forEach(function(cb) { cb.checked = source.checked; });
+    }
+</script>
+{% endblock %}

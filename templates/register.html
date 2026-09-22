@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Register sample — Sample Tracker{% endblock %}
+{% block page_title %}Register new sample{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 520px;">
+    <form method="POST" action="{{ url_for('register') }}" class="sample-form" id="register-form">
+        <div class="form-group">
+            <label for="name" class="form-label">Sample name / type</label>
+            <input type="text" id="name" name="name" class="form-input"
+                   placeholder="e.g. Fertilizer X" required>
+        </div>
+
+        <div class="form-group">
+            <label for="received_from" class="form-label">Received from</label>
+            <input type="text" id="received_from" name="received_from" class="form-input"
+                   placeholder="Who submitted this sample?" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date_received" class="form-label">Date received</label>
+            <input type="date" id="date_received" name="date_received" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+            <label for="folder_id" class="form-label">Folder (optional)</label>
+            <select id="folder_id" name="folder_id" class="form-input">
+                <option value="">No folder</option>
+                {% for folder in folders %}
+                <option value="{{ folder.id }}">{{ folder.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-info">
+            <span>Sample ID will be auto-generated (e.g. SSP-0001)</span>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary" id="btn-cancel">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="btn-submit">Register sample</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

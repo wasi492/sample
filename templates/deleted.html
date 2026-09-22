@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Recently deleted — Sample Tracker{% endblock %}
+{% block page_title %}Recently deleted{% endblock %}
+
+{% block content %}
+{% if samples %}
+<div class="page-actions">
+    <span class="sample-count" id="deleted-count">{{ samples|length }} deleted sample{{ 's' if samples|length != 1 else '' }}</span>
+</div>
+
+<div class="table-card">
+    <table class="data-table" id="deleted-table">
+        <thead>
+            <tr>
+                <th>Sample ID</th>
+                <th>Sample name</th>
+                <th>Received from</th>
+                <th>Date received</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in samples %}
+            <tr class="table-row">
+                <td class="cell-id">{{ sample.sample_id }}</td>
+                <td>{{ sample.name }}</td>
+                <td>{{ sample.received_from }}</td>
+                <td>{{ sample.date_received }}</td>
+                <td class="cell-actions">
+                    <form method="POST" action="{{ url_for('restore_sample', sample_id=sample.sample_id) }}" class="inline-form">
+                        <button type="submit" class="btn btn-small btn-success" id="btn-restore-{{ sample.sample_id }}">
+                            Restore
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('permanent_delete', sample_id=sample.sample_id) }}" class="inline-form"
+                          onsubmit="return confirm('Permanently delete {{ sample.sample_id }}? This cannot be undone.')">
+                        <button type="submit" class="btn btn-small btn-danger" id="btn-permadelete-{{ sample.sample_id }}">
+                            Delete forever
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state" id="empty-deleted">
+    <h2>Nothing here</h2>
+    <p>No recently deleted samples.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">&larr; Back to all samples</a>
+</div>
+{% endif %}
+{% endblock %}

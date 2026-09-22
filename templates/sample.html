@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ sample.sample_id }} — Sample Tracker{% endblock %}
+{% block page_title %}{{ sample.sample_id }}{% endblock %}
+
+{% block top_actions %}
+<span class="status-badge status-{{ 'testing' if sample.status == 'Under Testing' else 'sent' }}" style="color:#fff; border:1px solid rgba(255,255,255,0.3);">
+    {{ sample.status }}
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="header-with-back" style="margin-bottom: 16px;">
+    <a href="{{ url_for('index') }}" class="btn-back" id="btn-back">&larr; Back to all samples</a>
+</div>
+
+<!-- Sample Info Card -->
+<div class="card">
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">Sample name</span>
+            <span class="detail-value">{{ sample.name }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Received from</span>
+            <span class="detail-value">{{ sample.received_from }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Date received</span>
+            <span class="detail-value">{{ sample.date_received }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Sample ID</span>
+            <span class="detail-value id-value">{{ sample.sample_id }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Folder</span>
+            <span class="detail-value">
+                {% if current_folder %}
+                <a href="{{ url_for('folder_detail', folder_id=current_folder.id) }}">{{ current_folder.name }}</a>
+                {% else %}
+                <span style="color: var(--text-muted);">None</span>
+                {% endif %}
+            </span>
+        </div>
+        {% if sample.client_report_no %}
+        <div class="detail-item">
+            <span class="detail-label">Client report no.</span>
+            <span class="detail-value">{{ sample.client_report_no }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="detail-actions">
+        <!-- Folder Assignment -->
+        <form method="POST" action="{{ url_for('change_sample_folder', sample_id=sample.sample_id) }}" class="inline-form" style="display:flex; align-items:center; gap:8px;">
+            <select name="folder_id" class="form-input" style="width:auto; min-width:140px; padding:5px 10px; font-size:0.85rem;">
+                <option value="">No folder</option>
+                {% for folder in folders %}
+                <option value="{{ folder.id }}" {% if sample.folder_id == folder.id %}selected{% endif %}>{{ folder.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-secondary btn-small" id="btn-change-folder">Set folder</button>
+        </form>
+
+        <!-- Status Toggle -->
+        <form method="POST" action="{{ url_for('update_status', sample_id=sample.sample_id) }}" class="inline-form">
+            {% if sample.status == 'Under Testing' %}
+                <button type="submit" class="btn btn-success" id="btn-status-toggle">Mark as Report Sent</button>
+            {% else %}
+                <button type="submit" class="btn btn-warning" id="btn-status-toggle">Mark as Under Testing</button>
+            {% endif %}
+        </form>
+
+        <!-- Generate Report -->
+        <a href="{{ url_for('download_report', sample_id=sample.sample_id) }}" class="btn btn-primary" id="btn-report-docx" title="Download editable Word document">
+            📄 Word (.docx)
+        </a>
+
+        <!-- Delete -->
+        <form method="POST" action="{{ url_for('delete_sample', sample_id=sample.sample_id) }}" class="inline-form"
+              onsubmit="return confirm('Move this sample to Recently Deleted?')">
+            <button type="submit" class="btn btn-danger" id="btn-delete">Delete</button>
+        </form>
+    </div>
+</div>
+
+<!-- Test Results Section -->
+<div class="card">
+    <h2 class="section-title">Test parameters &amp; results</h2>
+    <p class="section-desc">Select the applicable test parameters, enter their results and method used.</p>
+
+    <form method="POST" action="{{ url_for('save_results', sample_id=sample.sample_id) }}" id="results-form">
+        <div class="parameters-grid">
+            {% for param in parameters %}
+            <div class="parameter-row {% if param.id in saved_ids %}selected{% endif %}">
+                <label class="parameter-label">
+                    <input type="checkbox" name="param_{{ param.id }}" value="1"
+                           class="param-checkbox"
+                           {% if param.id in saved_ids %}checked{% endif %}
+                           onchange="toggleResultInput(this)">
+                    <span class="param-name">{{ param.name }}</span>
+                    <span class="param-unit">({{ param.unit }})</span>
+                </label>
+                <div class="result-method-group">
+                    <input type="text" name="result_{{ param.id }}"
+                           class="form-input result-input"
+                           placeholder="Result"
+                           value="{{ saved_results.get(param.id, '') }}"
+                           {% if param.id not in saved_ids %}disabled{% endif %}>
+                    <input type="text" name="method_{{ param.id }}"
+                           class="form-input method-input"
+                           placeholder="Method used"
+                           value="{{ saved_methods.get(param.id, '') }}"
+                           {% if param.id not in saved_ids %}disabled{% endif %}>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-save-results">Save results</button>
+        </div>
+    </form>
+
+    <!-- Add New Parameter -->
+    <div class="add-param-section">
+        <h3 class="add-param-title">+ Add new test parameter</h3>
+        <p class="section-desc">New parameters are added to the master list and become available on all samples.</p>
+        <form method="POST" action="{{ url_for('add_new_parameter', sample_id=sample.sample_id) }}" class="add-param-form" id="add-param-form">
+            <input type="text" name="new_param_name" class="form-input" placeholder="Parameter name (e.g. Ash Content)" required id="new-param-name">
+            <input type="text" name="new_param_unit" class="form-input" placeholder="Unit (e.g. %, mg/L)" id="new-param-unit">
+            <button type="submit" class="btn btn-primary btn-small" id="btn-add-param">Add</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleResultInput(checkbox) {
+        var row = checkbox.closest('.parameter-row');
+        var inputs = row.querySelectorAll('.result-input, .method-input');
+        inputs.forEach(function(input) {
+            input.disabled = !checkbox.checked;
+            if (!checkbox.checked) input.value = '';
+        });
+        if (checkbox.checked) {
+            row.querySelector('.result-input').focus();
+            row.classList.add('selected');
+        } else {
+            row.classList.remove('selected');
+        }
+    }
+</script>
+{% endblock %}

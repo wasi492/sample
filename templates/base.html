@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Sample Tracking System — Digital lab sample management for logging, tracking, and retrieving test samples.">
+    <title>{% block title %}Test Report - R&D{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Glagolitic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="layout">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-icon">🧪</span>
+                <span class="sidebar-brand-text">Sample Tracker</span>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="sidebar-section-label">Navigation</div>
+                <a href="{{ url_for('index') }}"
+                    class="sidebar-link {% if request.endpoint == 'index' %}active{% endif %}" id="nav-home">
+                    <span class="sidebar-link-icon">📋</span>
+                    <span>All samples</span>
+                </a>
+                <a href="{{ url_for('register') }}"
+                    class="sidebar-link {% if request.endpoint == 'register' %}active{% endif %}" id="nav-register">
+                    <span class="sidebar-link-icon">➕</span>
+                    <span>Register</span>
+                </a>
+                <a href="{{ url_for('search') }}"
+                    class="sidebar-link {% if request.endpoint == 'search' %}active{% endif %}" id="nav-search">
+                    <span class="sidebar-link-icon">🔍</span>
+                    <span>Search</span>
+                </a>
+                <a href="{{ url_for('folders_list') }}"
+                    class="sidebar-link {% if request.endpoint in ['folders_list', 'folder_detail'] %}active{% endif %}" id="nav-folders">
+                    <span class="sidebar-link-icon">📁</span>
+                    <span>Folders</span>
+                </a>
+                <a href="{{ url_for('deleted') }}"
+                    class="sidebar-link {% if request.endpoint == 'deleted' %}active{% endif %}" id="nav-deleted">
+                    <span class="sidebar-link-icon">🗑️</span>
+                    <span>Recently deleted</span>
+                </a>
+
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-label">Tools</div>
+                <a href="{{ url_for('export_excel') }}" class="sidebar-link" id="nav-export">
+                    <span class="sidebar-link-icon">📊</span>
+                    <span>Export to Excel</span>
+                </a>
+                <a href="{{ url_for('download_backup') }}" class="sidebar-link" id="nav-backup">
+                    <span class="sidebar-link-icon">💾</span>
+                    <span>Download backup</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Coral Accent Strip -->
+            <div class="top-strip">
+                <div class="top-strip-inner">
+                    <span class="top-strip-title">{% block page_title %}Sample Tracker{% endblock %}</span>
+                    {% block top_actions %}{% endblock %}
+                </div>
+            </div>
+
+            <div class="content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash flash-{{ category }}" id="flash-message">
+                    <span class="flash-text">{{ message }}</span>
+                    <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+
+            <footer class="footer">
+                <p>Sample Tracking System</p>
+            </footer>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Folders — Test Report R&D{% endblock %}
+{% block page_title %}Folders{% endblock %}
+
+{% block top_actions %}
+<span class="sample-count" style="color:rgba(255,255,255,0.7);">{{ folders|length }} folder{{ 's' if folders|length != 1 else '' }}</span>
+{% endblock %}
+
+{% block content %}
+<!-- Create New Folder -->
+<div class="card" style="max-width: 520px; margin-bottom: 16px;">
+    <h2 class="section-title">Create new folder</h2>
+    <form method="POST" action="{{ url_for('folder_create') }}" id="create-folder-form" style="display:flex; gap:8px; align-items:flex-end; margin-top:12px;">
+        <div class="form-group" style="flex:1; margin-bottom:0;">
+            <label for="folder-name" class="form-label">Folder name</label>
+            <input type="text" id="folder-name" name="name" class="form-input" placeholder="e.g. Client ABC" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-create-folder">Create</button>
+    </form>
+</div>
+
+<!-- Folders List -->
+{% if folders %}
+<div class="table-card">
+    <table class="data-table" id="folders-table">
+        <thead>
+            <tr>
+                <th>Folder name</th>
+                <th style="width:120px;">Samples</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for folder in folders %}
+            <tr class="table-row clickable" onclick="window.location='{{ url_for('folder_detail', folder_id=folder.id) }}'">
+                <td class="cell-id">
+                    <a href="{{ url_for('folder_detail', folder_id=folder.id) }}" class="sample-link" id="link-folder-{{ folder.id }}">
+                        📁 {{ folder.name }}
+                    </a>
+                </td>
+                <td>—</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state" id="empty-state">
+    <h2>No folders yet</h2>
+    <p>Create your first folder above to start organizing samples by client.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Search — Sample Tracker{% endblock %}
+{% block page_title %}Search samples{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin-bottom: 16px;">
+    <form method="GET" action="{{ url_for('search') }}" class="search-form" id="search-form">
+        <div class="search-input-group">
+            <input type="text" name="q" class="form-input search-input" id="search-input"
+                   placeholder="Search by Sample ID, name, sender, or date..."
+                   value="{{ query or '' }}" autofocus>
+            <button type="submit" class="btn btn-primary" id="btn-search">Search</button>
+        </div>
+    </form>
+</div>
+
+{% if query is not none %}
+    {% if results %}
+    <div class="search-results-info">
+        <span id="results-count">{{ results|length }} result{{ 's' if results|length != 1 else '' }} for "{{ query }}"</span>
+    </div>
+    <div class="table-card">
+        <table class="data-table" id="search-results-table">
+            <thead>
+                <tr>
+                    <th>Sample ID</th>
+                    <th>Sample name</th>
+                    <th>Received from</th>
+                    <th>Date received</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in results %}
+                <tr class="table-row clickable" onclick="window.location='{{ url_for('sample_detail', sample_id=sample.sample_id) }}'">
+                    <td class="cell-id">
+                        <a href="{{ url_for('sample_detail', sample_id=sample.sample_id) }}" class="sample-link">
+                            {{ sample.sample_id }}
+                        </a>
+                    </td>
+                    <td>{{ sample.name }}</td>
+                    <td>{{ sample.received_from }}</td>
+                    <td>{{ sample.date_received }}</td>
+                    <td>
+                        <span class="status-badge status-{{ 'testing' if sample.status == 'Under Testing' else 'sent' }}">
+                            {{ sample.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" id="no-results">
+        <h2>No results found</h2>
+        <p>No samples match "{{ query }}". Try a different search term.</p>
+    </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
